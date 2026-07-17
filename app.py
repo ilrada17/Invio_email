@@ -43,16 +43,20 @@ if st.button("🚀 Avvia Invio Email", type="primary"):
         st.error("Inserisci almeno un destinatario.")
     else:
         # Pulizia della lista dei destinatari
-        # Gestisce sia l'andata a capo (\n) che la separazione per virgola
         destinatari = [d.strip() for d in destinatari_raw.replace(",", "\n").split("\n") if d.strip()]
         
         st.info(f"Preparazione all'invio di {len(destinatari)} email...")
         
-        # Inizializzazione della barra di avanzamento e dei log
+        # Elementi grafici dinamici
         progress_bar = st.progress(0)
         status_text = st.empty()
-        log_area = st.text_area("Log delle operazioni:", value="", height=150)
+        
+        # CORREZIONE: Creiamo un segnaposto fisso per i log
+        log_placeholder = st.empty()
         logs = ""
+        
+        # Mostriamo il box iniziale vuoto
+        log_placeholder.text_area("Log delle operazioni:", value=logs, height=150)
 
         try:
             # Connessione al server SMTP
@@ -62,7 +66,7 @@ if st.button("🚀 Avvia Invio Email", type="primary"):
             server.login(mittente, password)
             
             logs += "✅ Connessione stabilita con successo.\n"
-            log_area.text_area("Log delle operazioni:", value=logs, height=150)
+            log_placeholder.text_area("Log delle operazioni:", value=logs, height=150)
 
             # Ciclo di invio
             for index, destinatario in enumerate(destinatari):
@@ -83,12 +87,14 @@ if st.button("🚀 Avvia Invio Email", type="primary"):
                 except Exception as e_single:
                     logs += f"❌ Errore con {destinatario}: {str(e_single)}\n"
                 
-                # Aggiornamento UI
-                log_area.text_area("Log delle operazioni:", value=logs, height=150)
+                # Aggiorniamo il segnaposto senza sovrascriverlo
+                log_placeholder.text_area("Log delle operazioni:", value=logs, height=150)
+                
+                # Aggiornamento barra progresso
                 percentuale = int(((index + 1) / len(destinatari)) * 100)
                 progress_bar.progress(percentuale)
                 
-                # Pausa anti-spam (tranne che per l'ultimo invio)
+                # Pausa anti-spam
                 if index < len(destinatari) - 1:
                     time.sleep(ritardo)
             
@@ -98,5 +104,5 @@ if st.button("🚀 Avvia Invio Email", type="primary"):
 
         except Exception as e:
             st.error(f"Errore di connessione generale: {e}")
-            st.warning("Verifica che la tua 'Password per le app' sia corretta e che la verifica in due passaggi sia attiva su Google.")
-          
+            st.warning("Verifica che la tua 'Password per le app' sia corretta e che la verifica in due passaggi sia attiva.")
+            
